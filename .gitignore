@@ -42,3 +42,4 @@
 ./.idea
 ./server/build
 ./client/build
+./cmake-build-debug
