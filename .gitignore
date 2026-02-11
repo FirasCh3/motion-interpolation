@@ -40,6 +40,6 @@
 # debug information files
 *.dwo
 ./.idea/*
-./server/build
-./client/build
-./cmake-build-debug
+server/build
+client/build
+/cmake-build-debug
