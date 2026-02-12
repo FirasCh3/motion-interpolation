@@ -1,6 +1,7 @@
-#include <iostream>
-using namespace std;
+#include "Server.h"
+
 int main() {
-    cout<<"test";
+    Server server(54000);
+    server.start();
     return 0;
 }
