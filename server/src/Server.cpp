@@ -2,82 +2,82 @@
 #include <iostream>
 using namespace std;
 
-Server::Server(unsigned short port)
-    : port(port), running(false) {}
+Server::Server(unsigned short server_port)
+    : server_port(server_port), is_running(false) {}
 
 void Server::start() {
-    if (socket.bind(port) != sf::Socket::Status::Done) {
+    if (server_socket.bind(server_port) != sf::Socket::Status::Done) {
         cerr << "Failed to bind server socket\n";
         return;
     }
 
-    socket.setBlocking(true);
-    running = true;
+    server_socket.setBlocking(true);
+    is_running = true;
 
-    cout << "Server running on port " << port << "\n";
+    cout << "Server running on port " << server_port << "\n";
 
-    while (running) {
+    while (is_running) {
         sf::Packet packet;
         std::optional<sf::IpAddress> sender;
-        unsigned short senderPort;
+        unsigned short sender_port;
 
-        auto status = socket.receive(packet, sender, senderPort);
+        auto status = server_socket.receive(packet, sender, sender_port);
 
         if (status == sf::Socket::Status::Done && sender.has_value()) {
-            handlePacket(packet, sender.value(), senderPort);
+            handle_packet(packet, sender.value(), sender_port);
         }
     }
 }
 
 void Server::stop() {
-    running = false;
-    socket.unbind();
+    is_running = false;
+    server_socket.unbind();
 }
 
-void Server::handlePacket(sf::Packet& packet,
-                          const sf::IpAddress& sender,
-                          unsigned short senderPort) {
+void Server::handle_packet(sf::Packet& packet,
+                           const sf::IpAddress& sender,
+                           unsigned short sender_port) {
 
-    registerClient(sender, senderPort);
-    forwardToOthers(packet, sender, senderPort);
+    register_client(sender, sender_port);
+    forward_to_others(packet, sender, sender_port);
 }
 
-void Server::registerClient(const sf::IpAddress& sender,
-                            unsigned short senderPort) {
+void Server::register_client(const sf::IpAddress& sender,
+                             unsigned short sender_port) {
 
-    std::lock_guard<std::mutex> lock(clientsMutex);
+    std::lock_guard<std::mutex> lock(clients_mutex);
 
     for (const auto& client : clients)
-        if (client.matches(sender, senderPort))
+        if (client.matches(sender, sender_port))
             return;
 
-    int newId = clients.size() + 1;
-    clients.emplace_back(newId, sender, senderPort);
+    int new_id = clients.size() + 1;
+    clients.emplace_back(new_id, sender, sender_port);
 
     cout << "Registered client "
-              << newId
-              << " ("
-              << sender
-              << ":"
-              << senderPort
-              << ")\n";
+         << new_id
+         << " ("
+         << sender
+         << ":"
+         << sender_port
+         << ")\n";
 }
 
-void Server::forwardToOthers(sf::Packet& packet,
-                             const sf::IpAddress& sender,
-                             unsigned short senderPort) {
+void Server::forward_to_others(sf::Packet& packet,
+                               const sf::IpAddress& sender,
+                               unsigned short sender_port) {
 
-    std::lock_guard<std::mutex> lock(clientsMutex);
+    std::lock_guard<std::mutex> lock(clients_mutex);
 
     for (const auto& client : clients) {
-    if (!client.matches(sender, senderPort)) {
-        auto status = socket.send(packet,
-                                  client.getAddress(),
-                                  client.getPort());
-        if (status != sf::Socket::Status::Done) {
-            cerr << "Failed to send packet to client "
-                      << client.getId() << "\n";
-        }
+        if (!client.matches(sender, sender_port)) {
+            auto status = server_socket.send(packet,
+                                             client.get_address(),
+                                             client.get_port());
+            if (status != sf::Socket::Status::Done) {
+                cerr << "Failed to send packet to client "
+                     << client.get_id() << "\n";
+            }
         }
     }
 }

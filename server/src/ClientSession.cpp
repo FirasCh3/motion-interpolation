@@ -1,23 +1,23 @@
 #include "ClientSession.h"
 
-ClientSession::ClientSession(int id,
-                             const sf::IpAddress& address,
-                             unsigned short port)
-    : id(id), address(address), port(port) {}
+ClientSession::ClientSession(int client_id,
+                             const sf::IpAddress& client_address,
+                             unsigned short client_port)
+    : client_id(client_id), client_address(client_address), client_port(client_port) {}
 
-int ClientSession::getId() const {
-    return id;
+int ClientSession::get_id() const {
+    return client_id;
 }
 
-const sf::IpAddress& ClientSession::getAddress() const {
-    return address;
+const sf::IpAddress& ClientSession::get_address() const {
+    return client_address;
 }
 
-unsigned short ClientSession::getPort() const {
-    return port;
+unsigned short ClientSession::get_port() const {
+    return client_port;
 }
 
-bool ClientSession::matches(const sf::IpAddress& addr,
-                            unsigned short p) const {
-    return address == addr && port == p;
+bool ClientSession::matches(const sf::IpAddress& address,
+                            unsigned short port) const {
+    return client_address == address && client_port == port;
 }

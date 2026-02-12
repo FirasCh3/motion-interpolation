@@ -8,28 +8,28 @@
 
 class Server {
 private:
-    unsigned short port;
-    sf::UdpSocket socket;
+    unsigned short server_port;
+    sf::UdpSocket server_socket;
 
     std::vector<ClientSession> clients;
-    std::atomic<bool> running;
-    std::mutex clientsMutex;
+    std::atomic<bool> is_running;
+    std::mutex clients_mutex;
 
 public:
-    explicit Server(unsigned short port);
+    explicit Server(unsigned short server_port);
 
     void start();
     void stop();
 
 private:
-    void handlePacket(sf::Packet& packet,
-                      const sf::IpAddress& sender,
-                      unsigned short senderPort);
+    void handle_packet(sf::Packet& packet,
+                       const sf::IpAddress& sender,
+                       unsigned short sender_port);
 
-    void registerClient(const sf::IpAddress& sender,
-                        unsigned short senderPort);
+    void register_client(const sf::IpAddress& sender,
+                         unsigned short sender_port);
 
-    void forwardToOthers(sf::Packet& packet,
-                         const sf::IpAddress& sender,
-                         unsigned short senderPort);
+    void forward_to_others(sf::Packet& packet,
+                           const sf::IpAddress& sender,
+                           unsigned short sender_port);
 };
