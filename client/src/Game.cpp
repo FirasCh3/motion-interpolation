@@ -1,10 +1,19 @@
 #include "Game.h"
 #include <iostream>
 
-Game::Game(sf::RenderWindow& window)
+Game::Game(sf::RenderWindow& window, int client_id)
     : window(window),
-      local_player(sf::Color::Green, {100.f, 300.f}),
-      remote_player(sf::Color::Red, {100.f, 200.f})
+      client_id(client_id),
+      local_player(
+          client_id == 0 ? sf::Color::Green : sf::Color::Red,
+          client_id == 0 ? sf::Vector2f{100.f, 300.f}
+                         : sf::Vector2f{100.f, 100.f}
+      ),
+      remote_player(
+          client_id == 0 ? sf::Color::Red : sf::Color::Green,
+          client_id == 0 ? sf::Vector2f{100.f, 100.f}
+                         : sf::Vector2f{100.f, 300.f}
+      )
 {
     if (!font.openFromFile("assets/fonts/ARIAL.TTF")) {
         std::cerr << "Failed to load font\n";

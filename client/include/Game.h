@@ -5,12 +5,14 @@
 
 class Game {
 public:
-    Game(sf::RenderWindow& window);
+    Game(sf::RenderWindow& window, int client_id);
 
     void run();
 
 private:
     sf::RenderWindow& window;
+    int client_id;
+    
     Player local_player;
     Player remote_player;
     sf::Clock clock;
