@@ -13,7 +13,8 @@ public:
     }
     RectangleShape shape();
     float speed();
-    void movePlayer(float dt, NetworkClient& network_client);
+    void movePlayer(float dt);
+    void moveRemotePlayer(float x, float y);
 
 
 private:

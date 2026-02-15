@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-
 #include "NetworkClient.h"
 #include "Player.h"
 unsigned SCREEN_WIDTH = 800;
@@ -17,6 +16,8 @@ int main() {
     NetworkClient network_client = NetworkClient();
     network_client.connect();
     Clock game_clock;
+    Clock timer;
+    Time sendInterval = seconds(1);
     float dt;
     while (window.isOpen()) {
         dt = game_clock.restart().asSeconds();
@@ -29,8 +30,14 @@ int main() {
         window.clear();
         window.draw(player.shape());
         window.draw(remote_player.shape());
+        network_client.receive_data(remote_player);
+        if (timer.getElapsedTime()>=sendInterval)
+        {
+            network_client.send_data(player.shape().getPosition());
+            timer.restart();
+        }
         if (window.hasFocus()) {
-            player.movePlayer(dt, network_client);
+            player.movePlayer(dt);
         }
         window.display();
     }
