@@ -1,32 +1,35 @@
-#include <iostream>
-#include <Player.h>
+#include "Player.h"
+#include <SFML/Window/Keyboard.hpp>
 
-#include "../../cmake-build-debug/_deps/sfml-src/include/SFML/System/Time.hpp"
-#include "SFML/System/Clock.hpp"
-#include "SFML/Window/Event.hpp"
-using namespace std;
-using namespace sf;
-RectangleShape Player::shape() {
+Player::Player(const sf::Color& color,
+               const sf::Vector2f& position,
+               float speed)
+    : speed_(speed) {
+
+    shape_.setRadius(10.f);
+    shape_.setFillColor(color);
+    shape_.setPosition(position);
+}
+
+sf::CircleShape Player::shape() const {
     return shape_;
 }
-float Player::speed() {
+
+float Player::speed() const {
     return speed_;
 }
 
 void Player::movePlayer(float dt) {
-    Vector2f offset;
-  if (Keyboard::isKeyPressed(Keyboard::Key::W)) {
-      offset = {0, -speed_*2*dt};
+    sf::Vector2f offset(0.f, 0.f);
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+        offset.y -= speed_ * dt;
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+        offset.y += speed_ * dt;
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+        offset.x += speed_ * dt;
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+        offset.x -= speed_ * dt;
 
     shape_.move(offset);
-  }else if (Keyboard::isKeyPressed(Keyboard::Key::S)) {
-      offset = {0, speed_*2*dt};
-      shape_.move(offset);
-  }else if (Keyboard::isKeyPressed(Keyboard::Key::D)) {
-      offset = {speed_*2*dt, 0};
-      shape_.move(offset);
-  }else if (Keyboard::isKeyPressed(Keyboard::Key::A)) {
-      offset = {-speed_*2*dt, 0};
-      shape_.move(offset);
-  }
 }
