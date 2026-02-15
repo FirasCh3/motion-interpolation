@@ -1,5 +1,6 @@
 #ifndef CLIENT_PLAYER_H
 #define CLIENT_PLAYER_H
+#include "NetworkClient.h"
 #include "SFML/Graphics/RectangleShape.hpp"
 #include "SFML/System/Vector2.hpp"
 using namespace sf;
@@ -12,7 +13,7 @@ public:
     }
     RectangleShape shape();
     float speed();
-    void movePlayer(float dt);
+    void movePlayer(float dt, NetworkClient& network_client);
 
 
 private:

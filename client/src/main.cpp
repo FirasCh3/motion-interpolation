@@ -13,7 +13,9 @@ int main() {
     std::cout << "Process ID: " << getpid() << std::endl;
     RenderWindow window(VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "motion interpolation");
     Player player = Player();
+    Player remote_player = Player();
     NetworkClient network_client = NetworkClient();
+    network_client.connect();
     Clock game_clock;
     float dt;
     while (window.isOpen()) {
@@ -26,10 +28,10 @@ int main() {
 
         window.clear();
         window.draw(player.shape());
+        window.draw(remote_player.shape());
         if (window.hasFocus()) {
-            player.movePlayer(dt);
+            player.movePlayer(dt, network_client);
         }
-        network_client.send_data();
         window.display();
     }
     return 0;
