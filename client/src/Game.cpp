@@ -15,6 +15,10 @@ Game::Game(sf::RenderWindow& window)
 
     remote_text = new sf::Text(font, "Remote", 14);
     remote_text->setFillColor(sf::Color::White);
+
+    network_client.connect();
+    send_interval = sf::seconds(1.f);
+    send_timer.restart();
 }
 
 
@@ -38,6 +42,12 @@ void Game::handleEvents() {
 void Game::update(float dt) {
     if (window.hasFocus()) {
         local_player.movePlayer(dt);
+    }
+
+    network_client.receive_data(remote_player);
+    if (send_timer.getElapsedTime() >= send_interval) {
+        network_client.send_data(local_player.shape().getPosition());
+        send_timer.restart();
     }
 }
 

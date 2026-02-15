@@ -33,3 +33,8 @@ void Player::movePlayer(float dt) {
 
     shape_.move(offset);
 }
+
+void Player::moveRemotePlayer(float x, float y)
+{
+    shape_.setPosition(sf::Vector2f{x, y});
+}

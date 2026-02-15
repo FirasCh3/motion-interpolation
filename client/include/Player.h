@@ -14,6 +14,7 @@ public:
     float speed() const;
 
     void movePlayer(float dt);
+    void moveRemotePlayer(float x, float y);
 
 private:
     sf::CircleShape shape_;
