@@ -1,22 +1,24 @@
 #ifndef CLIENT_PLAYER_H
 #define CLIENT_PLAYER_H
-#include "SFML/Graphics/RectangleShape.hpp"
-#include "SFML/System/Vector2.hpp"
-using namespace sf;
-class Player{
-public:
-    Player(): speed_(200) {
-        shape_.setFillColor(Color::White);
-        shape_.setSize({50, 50});
-        shape_.setPosition({20, 20});
-    }
-    RectangleShape shape();
-    float speed();
-    void movePlayer(float dt);
 
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/System/Vector2.hpp>
+
+class Player {
+public:
+    Player(const sf::Color& color,
+           const sf::Vector2f& position,
+           float speed = 200.f);
+
+    sf::CircleShape shape() const;
+    float speed() const;
+
+    void movePlayer(float dt);
+    void moveRemotePlayer(float x, float y);
 
 private:
-    RectangleShape shape_;
+    sf::CircleShape shape_;
     float speed_;
 };
-#endif //CLIENT_PLAYER_H
+
+#endif // CLIENT_PLAYER_H
