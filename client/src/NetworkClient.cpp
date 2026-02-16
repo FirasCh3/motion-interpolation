@@ -34,21 +34,18 @@ void NetworkClient::connect()
             cerr<<"Failed to initialize client"<<endl;
       }
 }
-void NetworkClient::receive_data(Player &remote_player)
+bool NetworkClient::receive_data(sf::Vector2f& out_position)
 {
+    sf::Packet packet;
+    std::optional<sf::IpAddress> sender_address;
+    unsigned short sender_port;
 
-      Packet packet;
-      optional<IpAddress> sender_address;
-      unsigned short sender_port;
-      if (socket_.receive(packet, sender_address, sender_port)==Socket::Status::Done)
-      {
-
-            if (sender_address.has_value())
-            {
-                  float x = 0.f,y = 0.f;
-                  packet.operator>>(x)>>y;
-                  remote_player.moveRemotePlayer(x, y);
-            }
-
-      }
+    if (socket_.receive(packet, sender_address, sender_port) == sf::Socket::Status::Done)
+    {
+        float x, y;
+        packet >> x >> y;
+        out_position = {x, y};
+        return true;
+    }
+    return false;
 }

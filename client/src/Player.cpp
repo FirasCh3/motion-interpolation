@@ -11,7 +11,7 @@ Player::Player(const sf::Color& color,
     shape_.setPosition(position);
 }
 
-sf::CircleShape Player::shape() const {
+const sf::CircleShape& Player::shape() const {
     return shape_;
 }
 
