@@ -21,6 +21,17 @@ private:
     sf::Text* local_text;
     sf::Text* remote_text;
 
+    sf::RectangleShape runButton;
+    sf::Text runButtonText;
+
+    sf::RectangleShape interpolatorBox;
+    sf::Text interpolatorText;
+    int interpolatorIndex;
+
+    sf::RectangleShape intervalBox;
+    sf::Text intervalText;
+    int intervalIndex;
+
     NetworkClient network_client;
     sf::Clock send_timer;
     sf::Time send_interval;
