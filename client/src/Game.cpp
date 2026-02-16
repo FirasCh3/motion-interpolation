@@ -51,7 +51,8 @@ void Game::handleEvents() {
 
 void Game::update(float dt) {
     if (window.hasFocus()) {
-        local_player.movePlayer(dt);
+        local_player.moveSinusoidal(dt);
+        // local_player.movePlayer(dt);
     }
 
     sf::Vector2f received_pos;

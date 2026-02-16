@@ -15,10 +15,13 @@ public:
 
     void movePlayer(float dt);
     void moveRemotePlayer(float x, float y);
+    void moveSinusoidal(float dt);
 
 private:
     sf::CircleShape shape_;
     float speed_;
+    sf::Vector2f initial_position_;
+    float elapsed_time_ = 0.f; 
 };
 
 #endif // CLIENT_PLAYER_H
