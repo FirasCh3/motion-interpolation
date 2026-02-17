@@ -1,6 +1,8 @@
 #include "Game.h"
 #include <iostream>
 
+#include "Interpolation.h"
+
 Game::Game(sf::RenderWindow& window, int client_id)
     : window(window),
       client_id(client_id),
@@ -26,9 +28,9 @@ Game::Game(sf::RenderWindow& window, int client_id)
     remote_text->setFillColor(sf::Color::White);
 
     network_client.connect();
-    send_interval = sf::seconds(0.5f);
+    send_interval = sf::seconds(1.f);
     send_timer.restart();
-    interpolation_delay = send_interval.asSeconds() * 1.1f;
+    interpolation_delay = send_interval.asSeconds() * 4.1f;
 }
 
 
@@ -52,7 +54,7 @@ void Game::handleEvents() {
 void Game::update(float dt) {
     if (window.hasFocus()) {
         local_player.moveSinusoidal(dt);
-        // local_player.movePlayer(dt);
+        //local_player.movePlayer(dt);
     }
 
     sf::Vector2f received_pos;
@@ -62,10 +64,22 @@ void Game::update(float dt) {
 
         remote_buffer.push_back({received_pos, now});
 
-        if (remote_buffer.size() > 10)
-            remote_buffer.pop_front();
+        /*if (remote_buffer.size() > 10)
+            remote_buffer.pop_front();*/
     }
-    interpolate_remote();
+    float render_time = net_clock.getElapsedTime().asSeconds() - interpolation_delay;
+    while (remote_buffer.size() >= 4 &&
+       remote_buffer[1].time <= render_time)
+    {
+        remote_buffer.pop_front();
+    }
+    if (remote_buffer.size()>=4)
+    {
+        Vector2f interpolated_position = interpolation_.lagrange(remote_buffer, render_time, 4);
+        remote_player.moveRemotePlayer(interpolated_position.x, interpolated_position.y);
+    }
+
+    //interpolate_remote();
 
     if (send_timer.getElapsedTime() >= send_interval) {
         network_client.send_data(local_player.shape().getPosition());
@@ -80,7 +94,7 @@ float clamp(float v, float min, float max)
     return v;
 }
 
-void Game::interpolate_remote()
+/*void Game::interpolate_remote()
 {
     if (remote_buffer.size() < 2)
         return;
@@ -106,7 +120,7 @@ void Game::interpolate_remote()
         a.position + t * (b.position - a.position);
 
     remote_player.moveRemotePlayer(interpolated.x, interpolated.y);
-}
+}*/
 
 
 void Game::render() {
