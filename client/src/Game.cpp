@@ -1,6 +1,8 @@
 #include "Game.h"
 #include <iostream>
 
+#include "Interpolation.h"
+
 Game::Game(sf::RenderWindow& window, int client_id)
     : window(window),
       client_id(client_id),
@@ -28,12 +30,13 @@ Game::Game(sf::RenderWindow& window, int client_id)
     network_client.connect();
     send_interval = sf::seconds(1.f);
     send_timer.restart();
+    interpolation_delay = send_interval.asSeconds() * 4.1f;
 }
 
 
 void Game::run() {
     while (window.isOpen()) {
-        float dt = clock.restart().asSeconds();
+        float dt = frame_clock.restart().asSeconds();
         handleEvents();
         update(dt);
         render();
@@ -50,15 +53,75 @@ void Game::handleEvents() {
 
 void Game::update(float dt) {
     if (window.hasFocus()) {
-        local_player.movePlayer(dt);
+        local_player.moveSinusoidal(dt);
+        //local_player.movePlayer(dt);
     }
 
-    network_client.receive_data(remote_player);
+    sf::Vector2f received_pos;
+    if (network_client.receive_data(received_pos))
+    {
+        float now = net_clock.getElapsedTime().asSeconds();
+
+        remote_buffer.push_back({received_pos, now});
+
+        /*if (remote_buffer.size() > 10)
+            remote_buffer.pop_front();*/
+    }
+    float render_time = net_clock.getElapsedTime().asSeconds() - interpolation_delay;
+    while (remote_buffer.size() >= 4 &&
+       remote_buffer[1].time <= render_time)
+    {
+        remote_buffer.pop_front();
+    }
+    if (remote_buffer.size()>=4)
+    {
+        Vector2f interpolated_position = interpolation_.lagrange(remote_buffer, render_time, 4);
+        remote_player.moveRemotePlayer(interpolated_position.x, interpolated_position.y);
+    }
+
+    //interpolate_remote();
+
     if (send_timer.getElapsedTime() >= send_interval) {
         network_client.send_data(local_player.shape().getPosition());
         send_timer.restart();
     }
 }
+
+float clamp(float v, float min, float max)
+{
+    if (v < min) return min;
+    if (v > max) return max;
+    return v;
+}
+
+/*void Game::interpolate_remote()
+{
+    if (remote_buffer.size() < 2)
+        return;
+
+    float render_time = net_clock.getElapsedTime().asSeconds() - interpolation_delay;
+
+    while (remote_buffer.size() >= 2 &&
+           remote_buffer[1].time <= render_time)
+    {
+        remote_buffer.pop_front();
+    }
+
+    if (remote_buffer.size() < 2)
+        return;
+
+    const Sample& a = remote_buffer[0];
+    const Sample& b = remote_buffer[1];
+
+    float t = (render_time - a.time) / (b.time - a.time);
+    t = clamp(t, 0.f, 1.f);
+
+    sf::Vector2f interpolated =
+        a.position + t * (b.position - a.position);
+
+    remote_player.moveRemotePlayer(interpolated.x, interpolated.y);
+}*/
+
 
 void Game::render() {
     window.clear();

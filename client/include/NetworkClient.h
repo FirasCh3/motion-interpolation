@@ -11,9 +11,7 @@ public:
     IpAddress ip();
     void send_data(Vector2f position);
     void connect();
-    void receive_data(Player &remote_player);
-
-
+    bool receive_data(sf::Vector2f& out_position);
 
 private:
     int port_;
