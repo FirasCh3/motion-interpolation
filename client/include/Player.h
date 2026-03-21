@@ -16,12 +16,17 @@ public:
     void movePlayer(float dt);
     void moveRemotePlayer(float x, float y);
     void moveSinusoidal(float dt);
+    void moveSpiral(float dt);
+    void moveSquare(float dt);
+    void setPathOrigin(const sf::Vector2f& position, bool reset_elapsed = false);
+    void setSpiralRadiusLimit(float radius);
 
 private:
     sf::CircleShape shape_;
     float speed_;
     sf::Vector2f initial_position_;
     float elapsed_time_ = 0.f; 
+    float spiral_radius_limit_ = 180.f;
 };
 
 #endif // CLIENT_PLAYER_H
