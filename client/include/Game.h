@@ -1,6 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <deque>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include "Player.h"
 #include "NetworkClient.h"
@@ -74,6 +76,10 @@ private:
     MovementPath movement_path = MovementPath::Sinusoidal;
     bool simulation_running = false;
     int polynomial_sample_count = 3;
+    bool logging_active = false;
+    bool logging_started = false;
+    float logging_start_time = 0.f;
+    std::ofstream log_file;
 
     void handleEvents();
     void update(float dt);
@@ -82,6 +88,11 @@ private:
     void handleMouseClick(sf::Vector2f mouse_position);
     void updateButtonStyles();
     void configureLocalPath(bool reset_motion);
+    void syncSharedLoggingState(float now);
+    void setSharedLoggingEnabled(bool enabled);
+    void startLogging(float now);
+    void stopLogging();
+    void logPositions(float now);
     void resetTrails(float now);
     void updateRemotePlayer(float render_time);
     void updateTrail(std::deque<TrailPoint>& trail, sf::Vector2f position, float now);

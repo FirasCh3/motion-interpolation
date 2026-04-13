@@ -1,6 +1,7 @@
 #include "Game.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <thread>
 
@@ -17,6 +18,7 @@ constexpr float kPanelWidth = 740.f;
 constexpr float kTrailLifetimeSeconds = 2.8f;
 constexpr int kMinPolynomialSamples = 2;
 constexpr int kMaxPolynomialSamples = 6;
+const std::filesystem::path kSharedLoggingFlag = "test_logging_active.flag";
 }
 
 Game::Game(sf::RenderWindow& window, int client_id)
@@ -165,6 +167,71 @@ void Game::configureLocalPath(bool reset_motion) {
     local_player.setPathOrigin(origin, reset_motion);
 }
 
+void Game::startLogging(float now) {
+    logging_active = true;
+    logging_started = false;
+    logging_start_time = now;
+    if (log_file.is_open()) {
+        log_file.close();
+    }
+
+    const std::string filename = client_id == 0 ? "client1_output.csv" : "client2_output.csv";
+    log_file.open(filename, std::ios::out | std::ios::trunc);
+    if (!log_file.is_open()) {
+        std::cerr << "Failed to open log file: " << filename << std::endl;
+        logging_active = false;
+        return;
+    }
+}
+
+void Game::setSharedLoggingEnabled(bool enabled) {
+    if (enabled) {
+        std::ofstream flag_file(kSharedLoggingFlag, std::ios::out | std::ios::trunc);
+        flag_file << "active\n";
+    } else {
+        std::error_code ec;
+        std::filesystem::remove(kSharedLoggingFlag, ec);
+    }
+}
+
+void Game::syncSharedLoggingState(float now) {
+    const bool shared_active = std::filesystem::exists(kSharedLoggingFlag);
+    if (shared_active && !logging_active) {
+        startLogging(now);
+    } else if (!shared_active && logging_active) {
+        stopLogging();
+    }
+}
+
+void Game::stopLogging() {
+    if (log_file.is_open()) {
+        log_file.close();
+    }
+    logging_active = false;
+    logging_started = false;
+}
+
+void Game::logPositions(float now) {
+    if (!logging_active) {
+        return;
+    }
+
+    if (!logging_started) {
+        logging_started = true;
+        log_file << "client,time,local_x,local_y,remote_x,remote_y\n";
+    }
+
+    const sf::Vector2f local_pos = local_player.shape().getPosition();
+    const sf::Vector2f remote_pos = remote_player.shape().getPosition();
+    log_file << std::fixed << std::setprecision(3)
+             << client_id << ","
+             << (now - logging_start_time) << ","
+             << local_pos.x << ","
+             << local_pos.y << ","
+             << remote_pos.x << ","
+             << remote_pos.y << "\n";
+}
+
 void Game::resetTrails(float now) {
     local_trail.clear();
     remote_trail.clear();
@@ -181,18 +248,37 @@ void Game::handleMouseClick(sf::Vector2f mouse_position) {
         interpolation_method = InterpolationMethod::Newton;
     } else if (contains(simulation_button, mouse_position)) {
         simulation_running = !simulation_running;
+        if (simulation_running) {
+            configureLocalPath(true);
+            const float now = net_clock.getElapsedTime().asSeconds();
+            resetTrails(now);
+            setSharedLoggingEnabled(true);
+            startLogging(now);
+        } else {
+            setSharedLoggingEnabled(false);
+            stopLogging();
+        }
     } else if (contains(sinusoidal_button, mouse_position)) {
         movement_path = MovementPath::Sinusoidal;
         configureLocalPath(true);
         resetTrails(net_clock.getElapsedTime().asSeconds());
+        setSharedLoggingEnabled(false);
+        stopLogging();
+        simulation_running = false;
     } else if (contains(spiral_button, mouse_position)) {
         movement_path = MovementPath::Spiral;
         configureLocalPath(true);
         resetTrails(net_clock.getElapsedTime().asSeconds());
+        setSharedLoggingEnabled(false);
+        stopLogging();
+        simulation_running = false;
     } else if (contains(square_button, mouse_position)) {
         movement_path = MovementPath::Square;
         configureLocalPath(true);
         resetTrails(net_clock.getElapsedTime().asSeconds());
+        setSharedLoggingEnabled(false);
+        stopLogging();
+        simulation_running = false;
     } else if (contains(sample_decrease_button, mouse_position)) {
         polynomial_sample_count = std::max(kMinPolynomialSamples, polynomial_sample_count - 1);
     } else if (contains(sample_increase_button, mouse_position)) {
@@ -346,6 +432,7 @@ sf::Vector2f Game::interpolatePosition(float render_time) {
 
 void Game::update(float dt) {
     const float now = net_clock.getElapsedTime().asSeconds();
+    syncSharedLoggingState(now);
 
     if (window.hasFocus()) {
         if (simulation_running) {
@@ -372,6 +459,7 @@ void Game::update(float dt) {
 
     const float render_time = now - interpolation_delay;
     updateRemotePlayer(render_time);
+    logPositions(now);
     updateTrail(local_trail, local_player.shape().getPosition(), now);
     updateTrail(remote_trail, remote_player.shape().getPosition(), now);
     pruneTrail(local_trail, now);
