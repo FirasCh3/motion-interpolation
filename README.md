@@ -155,12 +155,3 @@ The `Samples` control changes how many buffered samples Lagrange and Newton use.
 - The protocol sends only positions, not velocity or path metadata.
 - Polynomial interpolation is experimental here and not necessarily suitable for production game networking.
 
-These limitations are acceptable for a visual comparison tool, but they matter if you want accurate benchmarking or a more realistic online-game prototype.
-
-## Suggested Experiments
-
-- Compare all interpolation methods on the same path and sample count.
-- Increase the polynomial sample count and watch for overshoot.
-- Compare smooth paths, such as sinusoidal and spiral, against the square path.
-- Pause the path test and move manually to observe how each method reacts to less predictable motion.
-- Use the fading trails to inspect whether the reconstructed remote path follows the local path shape or cuts corners.
